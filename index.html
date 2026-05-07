@@ -293,7 +293,7 @@ function render() {
       </div>` : ''}
       
       <input id="apiKeyInput" type="password" placeholder="粘貼 API Key" value="${state.apiKey}"
-        oninput="state.apiKey = this.value"
+        oninput="updateApiKey(this.value)"
         class="hidden sm:block border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono w-44 focus:outline-none focus:border-indigo-400 text-slate-600 bg-slate-50" />
 
       <button onclick="triggerUpload()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 active-scale ${processing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
@@ -506,6 +506,10 @@ function renderTestimonyTab(sr) {
 window.triggerUpload = () => {
   const fi = document.getElementById('fileInput');
   if (fi) fi.click();
+};
+
+window.updateApiKey = (val) => {
+  state.apiKey = val;
 };
 
 window.selectAudience = (val) => {
