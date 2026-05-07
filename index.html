@@ -33,7 +33,6 @@
 <div id="app" class="min-h-screen flex flex-col bg-[#F8FAFC]"></div>
 
 <script type="module">
-// ─── State ────────────────────────────────────────────────────────────────────
 let state = {
   audioFiles: [],
   sessionResult: null,
@@ -59,7 +58,6 @@ function getAudienceLabel(type) {
   }
 }
 
-// ─── Gemini API Calls ─────────────────────────────────────────────────────────
 async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -71,8 +69,8 @@ async function fileToBase64(file) {
 
 async function geminiRequest(body) {
   const key = state.apiKey;
-  if (!key) throw new Error('請先輸入 Gemini API Key');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+  if (!key) throw new Error('請先輸入 API Key');
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -141,17 +139,14 @@ ${transcript}
     generationConfig: { temperature: 0.7 }
   });
 
-  // parse JSON
   const cleaned = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
   try {
     return JSON.parse(cleaned);
   } catch(e) {
-    // fallback: just use testimony = text
     return { verbatim: transcript, testimony: text, wordCount: text.length };
   }
 }
 
-// ─── Process ──────────────────────────────────────────────────────────────────
 function addLog(msg) {
   if (!state.sessionResult) return;
   const time = new Date().toLocaleTimeString();
@@ -205,7 +200,6 @@ async function startFullProcess(files, audience) {
     addLog('語音辨識完成，自動進入蒙恩見證稿編寫階段...');
     render();
 
-    // auto transform
     state.sessionResult.status = 'processing_transform';
     state.sessionResult.currentStep = 2;
     addLog(`正在為【${getAudienceLabel(audience)}】調整語氣並整理內容...`);
@@ -255,7 +249,6 @@ function showToast(msg) {
   setTimeout(() => el.remove(), 2500);
 }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
 function getTabClass(tab, disabled) {
   const base = 'px-10 py-5 text-sm font-black transition-all border-b-4 uppercase tracking-widest flex items-center gap-2 whitespace-nowrap';
   if (disabled) return `${base} border-transparent text-slate-300 cursor-not-allowed opacity-50`;
@@ -276,7 +269,6 @@ function render() {
   const processing = isProcessing();
 
   app.innerHTML = `
-  <!-- Header -->
   <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-4 sticky top-0 z-30 shadow-sm" style="backdrop-filter:blur(12px);background:rgba(255,255,255,0.92)">
     <div class="flex items-center gap-3 shrink-0">
       <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-md">
@@ -285,7 +277,6 @@ function render() {
       <h1 class="text-lg font-black text-slate-900 leading-none tracking-tight hidden sm:block">申言稿編輯器</h1>
     </div>
 
-    <!-- Audience selector -->
     <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
       ${audienceOptions.map(opt => `
         <button onclick="selectAudience('${opt.value}')" ${processing ? 'disabled' : ''} 
@@ -301,13 +292,12 @@ function render() {
         <span class="text-xs font-medium text-slate-600 truncate">${sr.filename}</span>
       </div>` : ''}
       
-      <!-- API Key input -->
-      <input id="apiKeyInput" type="password" placeholder="Gemini API Key" value="${state.apiKey}"
+      <input id="apiKeyInput" type="password" placeholder="粘貼 API Key" value="${state.apiKey}"
         oninput="state.apiKey = this.value"
         class="hidden sm:block border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono w-44 focus:outline-none focus:border-indigo-400 text-slate-600 bg-slate-50" />
 
-      <button onclick="document.getElementById('fileInput').click()" ${processing ? 'disabled' : ''}
-        class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 active-scale ${processing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
+      <button onclick="document.getElementById('fileInput').click()" ${processing || !state.apiKey ? 'disabled' : ''}
+        class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 active-scale ${processing || !state.apiKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         <span class="hidden sm:inline">上傳音檔</span>
         <span class="sm:hidden">上傳</span>
@@ -320,14 +310,12 @@ function render() {
     <input type="file" id="fileInput" accept="audio/*" multiple class="hidden" onchange="handleFileUpload(event)" />
   </header>
 
-  <!-- Main -->
   <main class="flex-1 flex flex-col overflow-hidden" style="min-height: calc(100vh - 64px)">
     ${!sr ? renderLanding() : renderWorkspace(sr)}
   </main>
   `;
 
   logEndEl = document.getElementById('logEnd');
-  if (logEndEl) logEndEl.scrollIntoView({ behavior: 'instant' });
 }
 
 function renderLanding() {
@@ -348,7 +336,7 @@ function renderLanding() {
           </div>
         `).join('')}
       </div>
-      <p class="text-slate-400 text-xs mt-8">請在右上角輸入您的 Gemini API Key 以啟用 AI 功能</p>
+      <p class="text-slate-400 text-xs mt-8">請在右上角輸入 API Key</p>
     </div>
   </div>`;
 }
@@ -360,7 +348,6 @@ function renderWorkspace(sr) {
   const testimonyDisabled = sr.status !== 'completed';
 
   return `
-  <!-- Tab bar -->
   <div class="bg-white border-b border-slate-200 flex flex-col md:flex-row items-stretch md:items-center px-6 shadow-sm overflow-x-auto">
     <nav class="flex items-stretch flex-1">
       <button onclick="setTab('task')" class="${getTabClass('task', false)}">
@@ -385,7 +372,6 @@ function renderWorkspace(sr) {
     </div>
   </div>
 
-  <!-- Content -->
   <div class="flex-1 overflow-y-auto bg-white">
     <div class="w-full max-w-none px-6 md:px-12 py-8 min-h-full flex flex-col">
       ${activeTabContent}
@@ -485,7 +471,6 @@ function renderVerbatimTab(sr) {
 function renderTestimonyTab(sr) {
   return `
   <div class="max-w-7xl mx-auto w-full bg-white border-2 border-indigo-100 rounded-[4rem] p-12 md:p-24 shadow-2xl animate-slide relative overflow-hidden">
-    <!-- deco -->
     <div class="absolute top-0 right-0 p-16 opacity-[0.03] pointer-events-none select-none">
       <svg class="w-80 h-80 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V3L21.017 3V15C21.017 18.3137 18.3307 21 15.017 21H14.017ZM3.0166 21L3.0166 18C3.0166 16.8954 3.91203 16 5.0166 16H8.0166C8.56888 16 9.0166 15.5523 9.0166 15V9C9.0166 8.44772 8.56888 8 8.0166 8H5.0166C3.91203 8 3.0166 7.10457 3.0166 6V3L10.0166 3V15C10.0166 18.3137 7.3303 21 4.0166 21H3.0166Z"/></svg>
     </div>
@@ -519,7 +504,6 @@ function renderTestimonyTab(sr) {
   </div>`;
 }
 
-// ─── Global event handlers (attached to window) ───────────────────────────────
 window.selectAudience = (val) => {
   state.selectedAudience = val;
   render();
@@ -558,7 +542,6 @@ window.handleFileUpload = (e) => {
   e.target.value = '';
 };
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
 render();
 </script>
 </body>
