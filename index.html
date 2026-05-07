@@ -296,8 +296,7 @@ function render() {
         oninput="state.apiKey = this.value"
         class="hidden sm:block border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono w-44 focus:outline-none focus:border-indigo-400 text-slate-600 bg-slate-50" />
 
-      <button onclick="document.getElementById('fileInput').click()" ${processing || !state.apiKey ? 'disabled' : ''}
-        class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 active-scale ${processing || !state.apiKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
+      <button id="uploadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 active-scale ${processing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         <span class="hidden sm:inline">上傳音檔</span>
         <span class="sm:hidden">上傳</span>
@@ -316,6 +315,9 @@ function render() {
   `;
 
   logEndEl = document.getElementById('logEnd');
+  
+  // 绑定上传按钮事件
+  setTimeout(() => initUploadButton(), 0);
 }
 
 function renderLanding() {
@@ -542,7 +544,23 @@ window.handleFileUpload = (e) => {
   e.target.value = '';
 };
 
+// 初始化并绑定上传按钮
+function initUploadButton() {
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileInput = document.getElementById('fileInput');
+  if (uploadBtn && fileInput) {
+    uploadBtn.onclick = () => {
+      if (!state.apiKey) {
+        showToast('請先輸入 API Key');
+        return;
+      }
+      fileInput.click();
+    };
+  }
+}
+
 render();
+initUploadButton();
 </script>
 </body>
 </html>
